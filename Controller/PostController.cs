@@ -69,6 +69,7 @@ namespace TB_Social_Media.Controller
             return Ok(posts);
         }
 
+
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePost(int id, [FromBody] UpdatePostRequest request)
         {

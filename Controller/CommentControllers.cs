@@ -77,6 +77,19 @@ namespace TB_Social_Media.Controllers
                 return Ok(comments);
         }
 
+        [HttpGet("byUser/{userId}")]
+        public async Task<IActionResult> GetCommentsByUserId(int userId)
+        {
+            var comment = await _context.Comments
+            .Where(c => c.UserId == userId)
+            .ToListAsync();
+
+            if (comment == null || comment.Count == 0)
+                return NotFound("No comment founde for this user");
+
+            return Ok(comment);
+        }
+
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateCommentRequest dto)
         {
