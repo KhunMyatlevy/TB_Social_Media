@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using HelloWorldApi.Models;
 using Microsoft.EntityFrameworkCore;
+using TB_Social_Media.Models;
 
 
 namespace HelloWorldApi.Data
@@ -16,6 +17,8 @@ namespace HelloWorldApi.Data
         }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<Post> Posts { get; set; }
+        public DbSet<Comment> Comments { get; set; }
 
     }
 }
