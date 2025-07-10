@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace TB_Social_Media.DTO
+namespace HelloWorldApi.DTO
 {
-    public class UpdateCommentRequest
+    public class DeletePostRequest
     {
-        public string Content { get; set; }
         public int UserId { get; set; }
-    }
+    } 
 }

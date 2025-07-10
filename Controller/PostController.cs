@@ -7,6 +7,7 @@ using HelloWorldApi.Data;
 using TB_Social_Media.DTO;
 using TB_Social_Media.Models;
 using Microsoft.EntityFrameworkCore;
+using HelloWorldApi.DTO;
 
 namespace TB_Social_Media.Controller
 {
@@ -76,22 +77,28 @@ namespace TB_Social_Media.Controller
             var post = await _context.Posts.FindAsync(id);
             if (post == null) return NotFound();
 
+            if (post.UserId != request.UserId)
+                return Forbid("You can only update your own post");
+
             post.Content = request.Content;
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Post updated." });
+            return Ok(new { message = "Post updated" });
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePost(int id)
+        public async Task<IActionResult> DeletePost(int id, [FromBody] DeletePostRequest request)
         {
             var post = await _context.Posts.FindAsync(id);
             if (post == null) return NotFound();
 
+            if (post.UserId != request.UserId)
+                return Forbid("You can only delete your own post");
+
             _context.Posts.Remove(post);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Post deleted." });
+            return Ok(new { message = "Post deleted" });
         }
     }
 }

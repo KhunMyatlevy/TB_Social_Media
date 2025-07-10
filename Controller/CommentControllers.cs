@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using HelloWorldApi.Data;
+using HelloWorldApi.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TB_Social_Media.DTO;
@@ -94,24 +95,28 @@ namespace TB_Social_Media.Controllers
         public async Task<IActionResult> Update(int id, [FromBody] UpdateCommentRequest dto)
         {
             var comment = await _context.Comments.FindAsync(id);
-            if (comment == null) return NotFound("Comment not found.");
-            if (string.IsNullOrWhiteSpace(dto.Content))
-                return BadRequest("Content is required.");
+            if (comment == null) return NotFound("Comment not found");
+
+            if (comment.UserId != dto.UserId)
+                return Forbid("You can only edit your own comment");
 
             comment.Content = dto.Content;
             await _context.SaveChangesAsync();
-            return Ok(new { message = "Comment updated." });
+            return Ok(new { message = "Comment updated" });
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id, [FromBody] DeleteCommentRequest dto)
         {
             var comment = await _context.Comments.FindAsync(id);
-            if (comment == null) return NotFound("Comment not found.");
+            if (comment == null) return NotFound("Comment not found");
+
+            if (comment.UserId != dto.UserId)
+                return Forbid("You can only delete your own comment");
 
             _context.Comments.Remove(comment);
             await _context.SaveChangesAsync();
-            return Ok(new { message = "Comment deleted." });
+            return Ok(new { message = "Comment deleted" });
         }
     }
 }

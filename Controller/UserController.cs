@@ -39,7 +39,6 @@ namespace TB_Social_Media.Controllers
 
             return Ok(new { message = "User added successfully", userId = user.Id });
 
-
         }
 
         [HttpGet]
