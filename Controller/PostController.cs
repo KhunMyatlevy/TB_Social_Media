@@ -8,11 +8,13 @@ using TB_Social_Media.DTO;
 using TB_Social_Media.Models;
 using Microsoft.EntityFrameworkCore;
 using HelloWorldApi.DTO;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TB_Social_Media.Controller
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class PostController : ControllerBase
     {
         private readonly AppDbContext _context;
