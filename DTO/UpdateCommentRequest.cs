@@ -8,6 +8,5 @@ namespace TB_Social_Media.DTO
     public class UpdateCommentRequest
     {
         public string Content { get; set; }
-        public int UserId { get; set; }
     }
 }

@@ -1,106 +1,94 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using HelloWorldApi.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TB_Social_Media.DTO;
 using TB_Social_Media.Models;
-using Microsoft.EntityFrameworkCore;
-using HelloWorldApi.DTO;
-using Microsoft.AspNetCore.Authorization;
 
-namespace TB_Social_Media.Controller
+namespace TB_Social_Media.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class PostController : ControllerBase
     {
         private readonly AppDbContext _context;
+        public PostController(AppDbContext context) => _context = context;
 
-        public PostController(AppDbContext context)
-        {
-            _context = context;
-        }
-
+        // ------------------  POST /api/post  ------------------
         [HttpPost]
-        public async Task<IActionResult> CreatePost([FromBody] CreatePostRequest request)
+        public async Task<IActionResult> Create([FromBody] CreatePostRequest dto)
         {
+            int userId = GetUserIdFromToken();
             var post = new Post
             {
-                Content = request.Content,
-                UserId = request.UserId
+                Content   = dto.Content,
+                UserId    = userId,
+                Createdat = DateTime.UtcNow
             };
 
-            await _context.Posts.AddAsync(post);
+            _context.Posts.Add(post);
             await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Post created" });
+            return Ok(new { message = "Post created", postId = post.Id });
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllPosts()
-        {
-            var posts = await _context.Posts
-            .OrderByDescending(p => p.Createdat)
-            .ToListAsync();
-
-            return Ok(posts);
-        }
+        public async Task<IActionResult> GetAll()
+            => Ok(await _context.Posts
+                                .OrderByDescending(p => p.Createdat)
+                                .ToListAsync());
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetPostById(int id)
-        {
-            var post = await _context.Posts.FindAsync(id);
-            if (post == null)
-                return NotFound("Post not found");
+        public async Task<IActionResult> GetById(int id)
+            => await _context.Posts.FindAsync(id) is { } post
+                   ? Ok(post)
+                   : NotFound("Post not found");
 
-            return Ok(post);
-        }
 
         [HttpGet("byUser/{userId}")]
-        public async Task<IActionResult> GetPostsByUserId(int userId)
+        public async Task<IActionResult> GetByUser(int userId)
         {
-            var posts = await _context.Posts
-            .Where(p => p.UserId == userId)
-            .ToListAsync();
-
-            if (posts == null || posts.Count == 0)
-                return NotFound("No posts found for this user");
-
-            return Ok(posts);
+            var posts = await _context.Posts.Where(p => p.UserId == userId).ToListAsync();
+            return posts.Count == 0
+                   ? NotFound("No posts found for this user")
+                   : Ok(posts);
         }
 
-
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePost(int id, [FromBody] UpdatePostRequest request)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdatePostRequest dto)
         {
             var post = await _context.Posts.FindAsync(id);
-            if (post == null) return NotFound();
+            if (post == null) return NotFound("Post not found");
 
-            if (post.UserId != request.UserId)
-                return Forbid("You can only update your own post");
+            int userId = GetUserIdFromToken();
+            if (post.UserId != userId) return Forbid("You can only update your own post");
 
-            post.Content = request.Content;
+            post.Content = dto.Content;
             await _context.SaveChangesAsync();
-
             return Ok(new { message = "Post updated" });
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePost(int id, [FromBody] DeletePostRequest request)
+        public async Task<IActionResult> Delete(int id)
         {
             var post = await _context.Posts.FindAsync(id);
-            if (post == null) return NotFound();
+            if (post == null) return NotFound("Post not found");
 
-            if (post.UserId != request.UserId)
-                return Forbid("You can only delete your own post");
+            int userId = GetUserIdFromToken();
+            if (post.UserId != userId) return Forbid("You can only delete your own post");
 
             _context.Posts.Remove(post);
             await _context.SaveChangesAsync();
-
             return Ok(new { message = "Post deleted" });
+        }
+
+        private int GetUserIdFromToken()
+        {
+            var claim = User.FindFirst("userId") ?? User.FindFirst(ClaimTypes.NameIdentifier);
+            return int.Parse(claim?.Value ?? "0");
         }
     }
 }
