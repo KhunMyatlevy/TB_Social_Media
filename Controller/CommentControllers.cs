@@ -24,7 +24,9 @@ namespace TB_Social_Media.Controllers
             if (string.IsNullOrWhiteSpace(dto.Content))
                 return BadRequest("Content is required.");
 
-            int userId = int.Parse(User.FindFirst("userId").Value);
+            var userIdClaim = User.FindFirst("userId");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+                return Unauthorized("Invalid or missing user ID.");
 
             if (!await _context.Users.AnyAsync(u => u.Id == userId))
                 return BadRequest("User not found.");

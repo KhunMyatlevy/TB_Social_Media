@@ -35,15 +35,26 @@ namespace TB_Social_Media.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllUsers()
-            => Ok(await _context.Users.ToListAsync());
-
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetUserById(int id)
+        public async Task<IActionResult> GetAllUsers([FromQuery] string? search)
         {
-            var user = await _context.Users.FindAsync(id);
-            return user == null ? NotFound("User not found.") : Ok(user);
-        }
+            var query = _context.Users.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var keywords = search.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+                foreach (var keyword in keywords)
+                {
+                    var temp = keyword.ToLower();
+                    query = query.Where(u =>
+                        u.Username.ToLower().Contains(temp) ||
+                        u.Email.ToLower().Contains(temp));
+                }
+            }
+
+    var users = await query.ToListAsync();
+    return Ok(users);
+}
 
         [Authorize]
         [HttpPut]
