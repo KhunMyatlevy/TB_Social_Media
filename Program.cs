@@ -10,10 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Configure DbContext with MySQL
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-options.UseMySql(
-builder.Configuration.GetConnectionString("DefaultConnection"),
-new MySqlServerVersion(new Version(9, 3, 0))
-));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Read JWT secret key from config
 var secretKey = builder.Configuration["JwtSettings:SecretKey"];
