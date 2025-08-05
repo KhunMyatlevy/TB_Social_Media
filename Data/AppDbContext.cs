@@ -20,7 +20,8 @@ namespace HelloWorldApi.Data
         public DbSet<Post> Posts { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Like> Likes { get; set; }
-
+        public DbSet<Page> Pages { get; set; }
+        public DbSet<Group> Groups { get; set; }
 
     }
 }

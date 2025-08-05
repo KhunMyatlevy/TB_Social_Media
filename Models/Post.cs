@@ -13,5 +13,14 @@ namespace TB_Social_Media.Models
         public DateTime Createdat { get; set; } = DateTime.UtcNow;
         public int UserId { get; set; }
         public User User { get; set; }
+        public int PageId { get; set; }
+        public int OwnerId { get; set; }
+        public Page Page { get; set; }
+        public List<Comment> Comments { get; set; }
+        public int GroupId { get; set; }
+        public Group Group { get; set; }
+
+
+
     }
 }

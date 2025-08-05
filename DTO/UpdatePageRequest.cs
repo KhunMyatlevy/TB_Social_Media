@@ -5,10 +5,9 @@ using System.Threading.Tasks;
 
 namespace TB_Social_Media.DTO
 {
-    public class CreatePostRequest
+    public class UpdatePageRequest
     {
-        public string Content { get; set; }
-        public int UserId { get; set; }
-
+        public string Title { get; set; }
+        public string Description { get; set; }
     }
 }
