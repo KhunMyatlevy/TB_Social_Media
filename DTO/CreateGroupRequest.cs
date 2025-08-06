@@ -8,8 +8,5 @@ namespace TB_Social_Media.DTO
     public class CreateGroupRequest
     {
         public string Name { get; set; }
-        public int OwnerId { get; set; }
-        public List<int> AdminUserIds { get; set; }
-        public List<int> MemberUserIds { get; set; }
     }
 }

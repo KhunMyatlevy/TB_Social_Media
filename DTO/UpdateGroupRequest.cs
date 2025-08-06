@@ -8,7 +8,6 @@ namespace TB_Social_Media.DTO
     public class UpdateGroupRequest
     {
         public string Name { get; set; }
-        public List<int> AdminUserIds { get; set; }
-        public List<int> MemberUserIds { get; set; }
     }
 }
+   

@@ -92,12 +92,12 @@ namespace HelloWorldApi.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("UserId")
+                    b.Property<int>("OwnerId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("OwnerId");
 
                     b.ToTable("Groups");
                 });
@@ -172,6 +172,9 @@ namespace HelloWorldApi.Migrations
                     b.Property<DateTime>("Createdat")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("GroupId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("OwnerId")
                         .HasColumnType("integer");
 
@@ -182,6 +185,8 @@ namespace HelloWorldApi.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("GroupId");
 
                     b.HasIndex("PageId");
 
@@ -211,11 +216,13 @@ namespace HelloWorldApi.Migrations
 
             modelBuilder.Entity("TB_Social_Media.Models.Group", b =>
                 {
-                    b.HasOne("HelloWorldApi.Models.User", "User")
+                    b.HasOne("HelloWorldApi.Models.User", "Owner")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("TB_Social_Media.Models.Like", b =>
@@ -250,6 +257,12 @@ namespace HelloWorldApi.Migrations
 
             modelBuilder.Entity("TB_Social_Media.Models.Post", b =>
                 {
+                    b.HasOne("TB_Social_Media.Models.Group", "Group")
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("TB_Social_Media.Models.Page", "Page")
                         .WithMany()
                         .HasForeignKey("PageId")
@@ -261,6 +274,8 @@ namespace HelloWorldApi.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Group");
 
                     b.Navigation("Page");
 

@@ -7,77 +7,85 @@ using System.Threading.Tasks;
 using TB_Social_Media.Models;
 using TB_Social_Media.DTO;
 using HelloWorldApi.Data;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
-[ApiController]
-[Route("api/[controller]")]
-public class GroupController : ControllerBase
-{
-    private readonly AppDbContext _context;
-
-    public GroupController(AppDbContext context)
+    namespace TB_Social_Media.Controllers
     {
-        _context = context;
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> CreateGroup([FromBody] UpdateGroupRequest request)
-    {
-        var group = new Group
+        [ApiController]
+        [Route("api/[controller]")]
+        public class GroupController : ControllerBase
         {
-            Name = request.Name,
-            CreatedAt = DateTime.UtcNow
-        };
+            private readonly AppDbContext _context;
+            private readonly IHttpContextAccessor _httpContextAccessor;
 
-        _context.Groups.Add(group);
-        await _context.SaveChangesAsync();
+            public GroupController(AppDbContext context, IHttpContextAccessor httpContextAccessor)
+            {
+                _context = context;
+                _httpContextAccessor = httpContextAccessor;
+            }
 
+            private int GetUserId()
+            {
+                return int.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            }
 
-        return Ok(group);
+            [HttpPost]
+            [Authorize]
+            public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequest request)
+            {
+                var userId = GetUserId();
+
+                var group = new Group
+                {
+                    Name = request.Name,
+                    OwnerId = userId
+                };
+
+                _context.Groups.Add(group);
+                await _context.SaveChangesAsync();
+
+                return Ok(group);
+            }
+
+            [HttpPut("{groupId}")]
+            [Authorize]
+            public async Task<IActionResult> UpdateGroup(int groupId, [FromBody] UpdateGroupRequest request)
+            {
+                var userId = GetUserId();
+
+                var group = await _context.Groups.FindAsync(groupId);
+                if (group == null) return NotFound();
+
+                if (group.OwnerId != userId) return Forbid("Only admin can update the group.");
+
+                group.Name = request.Name;
+                await _context.SaveChangesAsync();
+
+                return Ok(group);
+            }
+
+            [HttpPost("{groupId}/posts")]
+            [Authorize]
+            public async Task<IActionResult> AddPost(int groupId, [FromBody] CreatePostRequest request)
+            {
+                var userId = GetUserId();
+
+                var group = await _context.Groups.FindAsync(groupId);
+                if (group == null) return NotFound();
+
+                var post = new Post
+                {
+                    GroupId = groupId,
+                    UserId = userId,
+                    Content = request.Content
+                };
+
+                _context.Posts.Add(post);
+                await _context.SaveChangesAsync();
+
+                return Ok(post);
+            }
+        }
     }
-
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateGroup(int id, [FromBody] UpdateGroupRequest request)
-    {
-        var group = await _context.Groups.FindAsync(id);
-        if (group == null)
-            return NotFound();
-
-        group.Name = request.Name;
-        await _context.SaveChangesAsync();
-
-
-        return Ok(group);
-    }
-
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetGroup(int id)
-    {
-        var group = await _context.Groups.FindAsync(id);
-        if (group == null)
-            return NotFound();
-
-        return Ok(group);
-    }
-
-    [HttpPost("{groupId}/posts")]
-    public async Task<IActionResult> CreatePost(int groupId, [FromBody] CreatePostRequest request)
-    {
-        var group = await _context.Groups.FindAsync(groupId);
-        if (group == null)
-            return NotFound("Group not found");
-
-
-        var post = new Post
-        {
-            GroupId = groupId,
-            UserId = request.UserId,
-            Content = request.Content,
-            Createdat = DateTime.UtcNow
-        };
-
-        _context.Posts.Add(post);
-        await _context.SaveChangesAsync();
-
-        return Ok(post);
-    }
-}
+   
