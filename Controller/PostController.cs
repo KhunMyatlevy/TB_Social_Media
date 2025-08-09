@@ -61,7 +61,7 @@ namespace TB_Social_Media.Controllers
         public async Task<IActionResult> Update(int id, [FromBody] UpdatePostRequest dto)
         {
             var post = await _context.Posts.FindAsync(id);
-            if (post == null) reusing System.Threading.Tasks;turn NotFound("Post not found");
+            if (post == null) NotFound("Post not found");
 
             int userId = GetUserIdFromToken();
             if (post.UserId != userId) return Forbid("You can only update your own post");
